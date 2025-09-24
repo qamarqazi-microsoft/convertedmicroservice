@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 
-namespace Product
+namespace User
 {
     public class Startup
     {
@@ -18,16 +18,15 @@ namespace Product
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddDbContext<ProductDbContext>(options =>
+
+            services.AddDbContext<UserDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<UserRepository>();
+            services.AddScoped<UserService>();
 
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-
-            // OpenTelemetry and Azure Monitor can be configured here as needed.
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -38,8 +37,6 @@ namespace Product
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 
