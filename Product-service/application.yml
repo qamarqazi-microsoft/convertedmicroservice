@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/productdb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+server:
+  port: 8080
+
+# Observability
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  tracing:
+    enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+
+# FILE: Dockerfile
+FROM openjdk:17-jdk-alpine
+VOLUME /tmp
+COPY target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app.jar"]
