@@ -1,0 +1,30 @@
+name: Deploy to AKS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS credentials
+        run: az aks get-credentials --resource-group microservices-rg --name msakscluster --overwrite-existing
+
+      - name: Deploy and update images for all services
+        run: |
+          kubectl apply -f k8s/Order-service || echo 'Missing k8s/Order-service folder'
+          kubectl set image deployment/Order-service-deployment Order-service=msacr.azurecr.io/Order-service:latest || echo 'Deployment Order-service-deployment not found'
+          kubectl apply -f k8s/Product-service || echo 'Missing k8s/Product-service folder'
+          kubectl set image deployment/Product-service-deployment Product-service=msacr.azurecr.io/Product-service:latest || echo 'Deployment Product-service-deployment not found'
+          kubectl apply -f k8s/User-service || echo 'Missing k8s/User-service folder'
+          kubectl set image deployment/User-service-deployment User-service=msacr.azurecr.io/User-service:latest || echo 'Deployment User-service-deployment not found'
