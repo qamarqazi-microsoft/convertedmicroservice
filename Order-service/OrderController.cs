@@ -6,7 +6,7 @@ namespace Order
     [Route("api/[controller]")]
     public class OrderController : ControllerBase
     {
-        // Placeholder for future order management logic
+        // Placeholder for future order-related endpoints.
     }
 }
 

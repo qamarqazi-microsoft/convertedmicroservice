@@ -1,49 +1,64 @@
-using UserService.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-public class UserRepository : IUserRepository
+namespace UserService
 {
-    private readonly UserDbContext _context;
-
-    public UserRepository(UserDbContext context)
+    public interface IUserRepository
     {
-        _context = context;
+        Task<IEnumerable<User>> GetAllAsync();
+        Task<User> GetByIdAsync(Guid id);
+        Task<User> GetByUsernameAsync(string username);
+        Task AddAsync(User user);
+        Task UpdateAsync(User user);
+        Task DeleteAsync(Guid id);
     }
 
-    public async Task<User?> GetByIdAsync(Guid id)
+    public class UserRepository : IUserRepository
     {
-        return await _context.Users.FindAsync(id);
-    }
+        private readonly UserDbContext _context;
 
-    public async Task<User?> GetByUsernameAsync(string username)
-    {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-    }
-
-    public async Task<IEnumerable<User>> GetAllAsync()
-    {
-        return await _context.Users.ToListAsync();
-    }
-
-    public async Task AddAsync(User user)
-    {
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task UpdateAsync(User user)
-    {
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(Guid id)
-    {
-        var user = await _context.Users.FindAsync(id);
-        if (user != null)
+        public UserRepository(UserDbContext context)
         {
-            _context.Users.Remove(user);
+            _context = context;
+        }
+
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
+
+        public async Task<User> GetByIdAsync(Guid id)
+        {
+            return await _context.Users.FindAsync(id);
+        }
+
+        public async Task<User> GetByUsernameAsync(string username)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        }
+
+        public async Task AddAsync(User user)
+        {
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

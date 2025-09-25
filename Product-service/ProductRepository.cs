@@ -1,18 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ProductService.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Product
+namespace ProductService.Repository
 {
-    public interface IProductRepository
-    {
-        Task<IEnumerable<Product>> GetAllAsync();
-        Task<Product> GetByIdAsync(int id);
-        Task<Product> AddAsync(Product product);
-        Task<Product> UpdateAsync(Product product);
-        Task<bool> DeleteAsync(int id);
-    }
-
     public class ProductRepository : IProductRepository
     {
         private readonly ProductDbContext _context;
@@ -55,6 +47,15 @@ namespace Product
             await _context.SaveChangesAsync();
             return true;
         }
+    }
+
+    public interface IProductRepository
+    {
+        Task<IEnumerable<Product>> GetAllAsync();
+        Task<Product> GetByIdAsync(int id);
+        Task<Product> AddAsync(Product product);
+        Task<Product> UpdateAsync(Product product);
+        Task<bool> DeleteAsync(int id);
     }
 }
 

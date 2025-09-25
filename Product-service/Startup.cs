@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ProductService.Repository;
+using ProductService.Services;
 using Microsoft.EntityFrameworkCore;
 
-namespace Product
+namespace ProductService
 {
     public class Startup
     {
@@ -24,12 +26,10 @@ namespace Product
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductService, Services.ProductService>();
 
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-
-            // OpenTelemetry, logging, and metrics can be configured here as needed
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -40,8 +40,6 @@ namespace Product
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 
