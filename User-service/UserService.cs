@@ -1,74 +1,64 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UserMicroservice.Models;
+using System.Security.Cryptography;
+using System.Text;
 
-namespace UserService
+public class UserService : IUserService
 {
-    public interface IUserService
+    private readonly IUserRepository _repository;
+
+    public UserService(IUserRepository repository)
     {
-        Task<IEnumerable<User>> GetAllAsync();
-        Task<User> GetByIdAsync(Guid id);
-        Task<User> GetByUsernameAsync(string username);
-        Task<User> CreateAsync(User user);
-        Task<User> UpdateAsync(Guid id, User user);
-        Task<bool> DeleteAsync(Guid id);
+        _repository = repository;
     }
 
-    public class UserService : IUserService
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        private readonly IUserRepository _repository;
+        return await _repository.GetAllAsync();
+    }
 
-        public UserService(IUserRepository repository)
+    public async Task<User?> GetUserByIdAsync(Guid id)
+    {
+        return await _repository.GetByIdAsync(id);
+    }
+
+    public async Task<User?> GetUserByUsernameAsync(string username)
+    {
+        return await _repository.GetByUsernameAsync(username);
+    }
+
+    public async Task<User> RegisterUserAsync(string username, string email, string password)
+    {
+        var passwordHash = HashPassword(password);
+        var user = new User
         {
-            _repository = repository;
-        }
+            Id = Guid.NewGuid(),
+            Username = username,
+            Email = email,
+            PasswordHash = passwordHash,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _repository.AddAsync(user);
+        return user;
+    }
 
-        public async Task<IEnumerable<User>> GetAllAsync()
-        {
-            return await _repository.GetAllAsync();
-        }
+    public async Task<bool> DeleteUserAsync(Guid id)
+    {
+        var user = await _repository.GetByIdAsync(id);
+        if (user == null)
+            return false;
+        await _repository.DeleteAsync(id);
+        return true;
+    }
 
-        public async Task<User> GetByIdAsync(Guid id)
-        {
-            return await _repository.GetByIdAsync(id);
-        }
-
-        public async Task<User> GetByUsernameAsync(string username)
-        {
-            return await _repository.GetByUsernameAsync(username);
-        }
-
-        public async Task<User> CreateAsync(User user)
-        {
-            user.Id = Guid.NewGuid();
-            await _repository.AddAsync(user);
-            return user;
-        }
-
-        public async Task<User> UpdateAsync(Guid id, User user)
-        {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null)
-                return null;
-
-            existing.Username = user.Username;
-            existing.Email = user.Email;
-            existing.PasswordHash = user.PasswordHash;
-            existing.Role = user.Role;
-
-            await _repository.UpdateAsync(existing);
-            return existing;
-        }
-
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null)
-                return false;
-
-            await _repository.DeleteAsync(id);
-            return true;
-        }
+    private string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        var bytes = Encoding.UTF8.GetBytes(password);
+        var hash = sha256.ComputeHash(bytes);
+        return Convert.ToBase64String(hash);
     }
 }
 
